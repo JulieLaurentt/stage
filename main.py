@@ -174,7 +174,7 @@ def evaluate_with_gemini(jobs: list[dict]) -> list[JobEvaluation]:
         )
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-3.6-flash",
         contents=[PROMPT_PROFIL, raw_payload],
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
