@@ -24,20 +24,17 @@ class JobList(BaseModel):
     selected_jobs: list[JobEvaluation]
 
 
-# --- 2. Configuration des sources cibles ---
+# --- 2. Configuration des cibles et profil ---
 
-# Entreprises hébergées sur l'API publique Greenhouse
 GREENHOUSE_COMPANIES = [
     "doctolib",
 ]
 
-# Entreprises hébergées sur l'API publique Lever
 LEVER_COMPANIES = [
     "withings",
     "nabla",
 ]
 
-# Flux RSS ciblés par cabinet / entreprise sur Indeed
 COMPANY_RSS_FEEDS = [
     {"company": "BearingPoint", "url": "https://fr.indeed.com/rss?q=company:BearingPoint+stage&l=Paris"},
     {"company": "Capgemini Invent", "url": "https://fr.indeed.com/rss?q=company:%22Capgemini+Invent%22+stage&l=Paris"},
@@ -46,13 +43,17 @@ COMPANY_RSS_FEEDS = [
     {"company": "Deloitte", "url": "https://fr.indeed.com/rss?q=company:Deloitte+stage+secteur+public+sante&l=Paris"},
 ]
 
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+}
+
 PROMPT_PROFIL = """
 Tu es un assistant de recrutement expert. Tu dois évaluer des offres pour le profil suivant :
 - Double diplôme : Ingénieur (Mathématiques appliquées, Data, IA) + Sciences Po (Affaires publiques, Stratégie d'entreprise).
 - Actuellement en stage chez Airbus Defence and Space (gestion de projet, KPI, data/IA, spécifications).
 - Recherche : Stage de césure (6 mois) débutant en mars 2027 à Paris / Île-de-France.
 - Domaines prioritaires : E-santé, santé publique, medtech, SSI/cybersécurité hospitalière, Product Management santé, transformation du secteur public / santé.
-- Exclusions strictes : Rôles purement commerciaux, prospection/sales, optimisation des prix / pricing pur, stages de courte durée (< 6 mois).
+- Exclusions strictes : Rôles purement commerciaux, prospection/sales, optimisation des prix / pricing pur, stages courts (< 6 mois).
 
 Pour chaque offre fournie :
 - Attribue une note de pertinence entre 0 et 100.
@@ -63,12 +64,10 @@ Pour chaque offre fournie :
 # --- 3. Fonctions de collecte ---
 
 def clean_html(raw_html: str) -> str:
-    """Supprime les balises HTML et nettoie les entités texte."""
     clean_text = re.sub(r"<[^>]+>", " ", raw_html)
     return " ".join(html.unescape(clean_text).split())
 
 def is_internship(title: str) -> bool:
-    """Pré-filtrage rapide pour ne garder que les offres de stage/césure."""
     keywords = ["stage", "intern", "internship", "cesure", "césure", "stagiaire", "trainee"]
     title_lower = title.lower()
     return any(k in title_lower for k in keywords)
@@ -77,7 +76,7 @@ def fetch_greenhouse_jobs(board_name: str) -> list[dict]:
     url = f"https://boards-api.greenhouse.io/v1/boards/{board_name}/jobs?content=true"
     collected = []
     try:
-        res = requests.get(url, timeout=10)
+        res = requests.get(url, headers=HEADERS, timeout=25)
         if res.status_code == 200:
             for job in res.json().get("jobs", []):
                 title = job.get("title", "")
@@ -97,14 +96,13 @@ def fetch_lever_jobs(board_name: str) -> list[dict]:
     url = f"https://api.lever.co/v0/postings/{board_name}?mode=json"
     collected = []
     try:
-        res = requests.get(url, timeout=10)
+        res = requests.get(url, headers=HEADERS, timeout=25)
         if res.status_code == 200:
             for job in res.json():
                 title = job.get("text", "")
                 location = job.get("categories", {}).get("location", "")
                 commitment = job.get("categories", {}).get("commitment", "")
                 
-                # Vérifier si c'est un stage ou basé en IDF/France
                 is_stage = is_internship(title) or is_internship(commitment)
                 if is_stage and any(loc in location for loc in ["Paris", "France", "Remote", "Issy"]):
                     collected.append({
@@ -120,16 +118,18 @@ def fetch_lever_jobs(board_name: str) -> list[dict]:
 def fetch_rss_jobs(feed_info: dict) -> list[dict]:
     collected = []
     try:
-        feed = feedparser.parse(feed_info["url"])
-        for entry in feed.entries[:8]:  # Limiter aux 8 dernières annonces du flux
-            title = entry.get("title", "")
-            if is_internship(title):
-                collected.append({
-                    "company": feed_info["company"],
-                    "title": title,
-                    "link": entry.get("link", ""),
-                    "summary": clean_html(entry.get("summary", ""))[:1200]
-                })
+        resp = requests.get(feed_info["url"], headers=HEADERS, timeout=25)
+        if resp.status_code == 200:
+            feed = feedparser.parse(resp.content)
+            for entry in feed.entries[:8]:
+                title = entry.get("title", "")
+                if is_internship(title):
+                    collected.append({
+                        "company": feed_info["company"],
+                        "title": title,
+                        "link": entry.get("link", ""),
+                        "summary": clean_html(entry.get("summary", ""))[:1200]
+                    })
     except Exception as e:
         print(f"Erreur RSS ({feed_info['company']}) : {e}")
     return collected
@@ -137,20 +137,25 @@ def fetch_rss_jobs(feed_info: dict) -> list[dict]:
 def collect_all_jobs() -> list[dict]:
     all_jobs = []
 
-    # 1. Collecte Greenhouse
     for company in GREENHOUSE_COMPANIES:
         all_jobs.extend(fetch_greenhouse_jobs(company))
 
-    # 2. Collecte Lever
     for company in LEVER_COMPANIES:
         all_jobs.extend(fetch_lever_jobs(company))
 
-    # 3. Collecte Flux RSS cabinets / entreprises
     for feed_info in COMPANY_RSS_FEEDS:
         all_jobs.extend(fetch_rss_jobs(feed_info))
 
-    # Déduplication par URL
     unique_jobs = list({j["link"]: j for j in all_jobs}.values())
+
+    # Offre de test pour valider la chaîne d'envoi d'e-mail au premier run
+    unique_jobs.append({
+        "company": "BearingPoint (Offre Test)",
+        "title": "Stage Consultant Public & Health Services",
+        "link": "https://www.bearingpoint.com",
+        "summary": "Stage de fin d'études ou césure de 6 mois à Paris à partir de mars 2027. Missions de cadrage, transformation numérique et appui aux politiques de santé publique et ministères."
+    })
+
     print(f"{len(unique_jobs)} offres potentielles collectées avant évaluation.")
     return unique_jobs
 
@@ -162,7 +167,6 @@ def evaluate_with_gemini(jobs: list[dict]) -> list[JobEvaluation]:
 
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
-    # Construction du texte groupé pour l'API
     raw_payload = "Voici les offres collectées aujourd'hui :\n\n"
     for i, j in enumerate(jobs):
         raw_payload += (
@@ -184,7 +188,6 @@ def evaluate_with_gemini(jobs: list[dict]) -> list[JobEvaluation]:
     )
 
     parsed = JobList.model_validate_json(response.text)
-    # Ne retenir que les offres validées
     return [job for job in parsed.selected_jobs if job.is_fit]
 
 # --- 5. Notification E-mail ---
@@ -205,22 +208,22 @@ def send_daily_email(matching_jobs: list[JobEvaluation]):
 
     html_content = f"""
     <html>
-      <body style="font-family: Arial, sans-serif; line-height: 1.5;">
-        <h2>Offres sélectionnées pour ton profil (Santé / Conseil / SSI)</h2>
+      <body style="font-family: Arial, sans-serif; line-height: 1.5; color: #222;">
+        <h2>Offres sélectionnées pour ton profil (Santé / Conseil / E-Santé)</h2>
         <p>Voici les opportunités identifiées aujourd'hui :</p>
-        <ul>
+        <ul style="list-style-type: none; padding-left: 0;">
     """
 
     for job in matching_jobs:
         html_content += f"""
-          <li style="margin-bottom: 15px;">
-            <b style="font-size: 16px;">{job.title}</b> — <span style="color: #2b5797;">{job.company}</span>
+          <li style="margin-bottom: 20px; padding: 12px; border-left: 4px solid #0055ff; background: #f8f9fa;">
+            <b style="font-size: 16px;">{job.title}</b> — <b>{job.company}</b>
             <br>
-            <b>Score :</b> {job.relevance_score}/100
+            <b>Score de pertinence :</b> {job.relevance_score}/100
             <br>
             <b>Analyse :</b> {job.summary_reason}
             <br>
-            👉 <a href="{job.url}" target="_blank">Consulter l'offre</a>
+            👉 <a href="{job.url}" target="_blank" style="color: #0055ff; font-weight: bold;">Consulter l'offre</a>
           </li>
         """
 
