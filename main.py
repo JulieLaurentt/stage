@@ -28,11 +28,16 @@ class JobList(BaseModel):
 
 GREENHOUSE_COMPANIES = [
     "doctolib",
+    "qonto",          # Banque pro / conformité / risk
+    "spendesk",       # Fintech / finance interne
+    "carbon4finance", # Notation extra-financière / data ESG (si board actif)
 ]
 
 LEVER_COMPANIES = [
     "withings",
     "nabla",
+    "ecovadis",       # Référence mondiale de la notation RSE / extra-financière (Paris)
+    "mooncard",       # Fintech / Risk & Compliance
 ]
 
 COMPANY_RSS_FEEDS = [
@@ -41,6 +46,25 @@ COMPANY_RSS_FEEDS = [
     {"company": "Wavestone", "url": "https://fr.indeed.com/rss?q=company:Wavestone+stage&l=Paris"},
     {"company": "Sia Partners", "url": "https://fr.indeed.com/rss?q=company:%22Sia+Partners%22+stage&l=Paris"},
     {"company": "Deloitte", "url": "https://fr.indeed.com/rss?q=company:Deloitte+stage+secteur+public+sante&l=Paris"},
+    # --- Régulateurs & Institutions publiques financières ---
+    {"company": "Banque de France / ACPR", "url": "https://fr.indeed.com/rss?q=company:%22Banque+de+France%22+stage&l=Paris"},
+    {"company": "AMF", "url": "https://fr.indeed.com/rss?q=company:%22Autorite+des+marches+financiers%22+stage&l=Paris"},
+    
+    # --- Big 4 / Conseil Risk, ESG & Conformité ---
+    {"company": "KPMG", "url": "https://fr.indeed.com/rss?q=company:KPMG+stage+(ESG+OR+conformite+OR+risque+OR+banque)&l=Paris"},
+    {"company": "PwC", "url": "https://fr.indeed.com/rss?q=company:PwC+stage+(risk+OR+conformite+OR+ESG+OR+durable)&l=Paris"},
+    {"company": "EY", "url": "https://fr.indeed.com/rss?q=company:EY+stage+(banque+OR+risk+OR+durabilite+OR+conformite)&l=Paris"},
+    {"company": "Deloitte Finance", "url": "https://fr.indeed.com/rss?q=company:Deloitte+stage+(risk+OR+regulatory+OR+sustainability)&l=Paris"},
+    {"company": "Mazars / Forvis Mazars", "url": "https://fr.indeed.com/rss?q=company:%22Mazars%22+stage+(banque+OR+esg+OR+conformite)&l=Paris"},
+
+    # --- Banques & BFI (Risk / Compliance / ESG) ---
+    {"company": "BNP Paribas", "url": "https://fr.indeed.com/rss?q=company:%22BNP+Paribas%22+stage+(risque+OR+compliance+OR+esg)&l=Paris"},
+    {"company": "Société Générale", "url": "https://fr.indeed.com/rss?q=company:%22Societe+Generale%22+stage+(conformite+OR+risk+OR+rse)&l=Paris"},
+    {"company": "Natixis / BPCE", "url": "https://fr.indeed.com/rss?q=company:%22Natixis%22+stage+(esg+OR+conformite+OR+risques)&l=Paris"},
+    {"company": "Crédit Agricole CIB", "url": "https://fr.indeed.com/rss?q=company:%22Credit+Agricole+CIB%22+stage+(risk+OR+compliance+OR+green)&l=Paris"},
+
+    # --- Agences de notation ---
+    {"company": "Moody's / S&P / Fitch", "url": "https://fr.indeed.com/rss?q=(Moody%27s+OR+%22S%26P%22+OR+Fitch)+stage&l=Paris"},
 ]
 
 HEADERS = {
@@ -53,7 +77,7 @@ PROFILES = [
         "email_env_var": "EMAIL_RECEIVER",
         "threshold": 70,
         "prompt": """
-Tu évalues des offres pour le profil suivant :
+Tu es un expert en recrutement. tu évalues des offres pour le profil suivant :
 - Double diplôme Ingénieur INSA (Mathématiques appliquées/IA/Data) + Sciences Po (Affaires publiques/Stratégie d'entreprise).
 - Recherche : Stage de 6 mois débutant en février/mars/avril 2027 à Paris/Île-de-France.
 - Actuellement en stage chez Airbus Defence and Space (gestion de projet, KPI, data/IA, spécifications).
@@ -71,11 +95,14 @@ Pour chaque offre fournie :
         "email_env_var": "EMAIL_RECEIVER_PARTNER",
         "threshold": 70,
         "prompt": """
-Tu évalues des offres pour le profil suivant :
-- [Complète ici sa formation et ses compétences].
-- Recherche : Stage débutant en mars / avril 2027 (préciser durée et zone géographique).
-- Domaines cibles : [Indique ici ses domaines cibles].
-- Exclusions : [Indique ce qu'il refuse].
+Tu es un expert en recrutement. Tu évalues des offres pour le profil suivant :
+- Formation : Étudiant en Master "Corporate Strategy and Finance in Europe" à Sciences Po Strasbourg, actuellement en année de césure (entre le M1 et le M2).
+- Expérience actuelle : Stage de 6 mois en tant qu'auditeur financier spécialisé en audit bancaire chez KPMG.
+- Certifications : Titulaire de la certification AMF, de la certification AMF Finance Durable et de la certification Sulitest.
+- Recherche :  Stage  4 à 6 mois. Entre mars 2027 et octobre 2027.Localisation : Paris et périphérie (Île-de-France).
+- Secteurs et Départements Ciblés : Banques ( Départements Risk Management, Conformité, Contrôle Interne, Veille Stratégique et Réglementaire, Finance Durable / ESG), Agences de notation ( Agences de notations financières classiques et extra-financières (ESG)),Autorités de régulation (Banque de France, Autorité des Marchés Financiers, Autorité de Contrôle Prudentiel et de Résolution...)
+,Cabinets de conseil (Big 4 & Big 3 / MBB) (Practices Risk Management, Conformité, Contrôle Interne, Veille Stratégique et Réglementaire, Finance Durable / ES)
+- Exclusions : pas d'exclusions.
 
 Pour chaque offre fournie :
 - Attribue une note de pertinence entre 0 et 100.
