@@ -24,7 +24,7 @@ class JobList(BaseModel):
     selected_jobs: list[JobEvaluation]
 
 
-# --- 2. Configuration des cibles et profil ---
+# --- 2. Configuration des cibles et profils ---
 
 GREENHOUSE_COMPANIES = [
     "doctolib",
@@ -47,19 +47,43 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 }
 
-PROMPT_PROFIL = """
-Tu es un assistant de recrutement expert. Tu dois évaluer des offres pour le profil suivant :
-- Double diplôme : Ingénieur (Mathématiques appliquées, Data, IA) + Sciences Po (Affaires publiques, Stratégie d'entreprise).
+PROFILES = [
+    {
+        "name": "Julie",
+        "email_env_var": "EMAIL_RECEIVER",
+        "threshold": 70,
+        "prompt": """
+Tu évalues des offres pour le profil suivant :
+- Double diplôme Ingénieur INSA (Mathématiques appliquées/IA/Data) + Sciences Po (Affaires publiques/Stratégie d'entreprise).
+- Recherche : Stage de 6 mois débutant en février/mars/avril 2027 à Paris/Île-de-France.
 - Actuellement en stage chez Airbus Defence and Space (gestion de projet, KPI, data/IA, spécifications).
-- Recherche : Stage de césure (6 mois) débutant en février / mars 2027 à Paris / Île-de-France.
 - Domaines prioritaires : E-santé, santé publique, medtech, SSI/cybersécurité hospitalière, Product Management santé, transformation du secteur public / santé.
-- Exclusions strictes : Rôles purement commerciaux, prospection/sales, Marketing, optimisation des prix / pricing pur, stages courts (< 4 mois).
+- Exclusions strictes : Rôles purement commerciaux, prospection, optimisation des prix / pricing pur, Marketing, stages courts (< 4 mois).
 
 Pour chaque offre fournie :
 - Attribue une note de pertinence entre 0 et 100.
 - Passe 'is_fit' à True UNIQUEMENT si le score est >= 70.
 - Fournis une explication concise (1 phrase) de l'adéquation ou du refus.
 """
+    },
+    {
+        "name": "Johan",
+        "email_env_var": "EMAIL_RECEIVER_PARTNER",
+        "threshold": 70,
+        "prompt": """
+Tu évalues des offres pour le profil suivant :
+- [Complète ici sa formation et ses compétences].
+- Recherche : Stage débutant en mars / avril 2027 (préciser durée et zone géographique).
+- Domaines cibles : [Indique ici ses domaines cibles].
+- Exclusions : [Indique ce qu'il refuse].
+
+Pour chaque offre fournie :
+- Attribue une note de pertinence entre 0 et 100.
+- Passe 'is_fit' à True UNIQUEMENT si le score est >= 70.
+- Fournis une explication concise (1 phrase) de l'adéquation ou du refus.
+"""
+    }
+]
 
 # --- 3. Fonctions de collecte ---
 
@@ -102,7 +126,6 @@ def fetch_lever_jobs(board_name: str) -> list[dict]:
                 title = job.get("text", "")
                 location = job.get("categories", {}).get("location", "")
                 commitment = job.get("categories", {}).get("commitment", "")
-                
                 is_stage = is_internship(title) or is_internship(commitment)
                 if is_stage and any(loc in location for loc in ["Paris", "France", "Remote", "Issy"]):
                     collected.append({
@@ -147,25 +170,14 @@ def collect_all_jobs() -> list[dict]:
         all_jobs.extend(fetch_rss_jobs(feed_info))
 
     unique_jobs = list({j["link"]: j for j in all_jobs}.values())
-
-    # Offre de test pour valider la chaîne d'envoi d'e-mail au premier run
-    unique_jobs.append({
-        "company": "BearingPoint (Offre Test)",
-        "title": "Stage Consultant Public & Health Services",
-        "link": "https://www.bearingpoint.com",
-        "summary": "Stage de fin d'études ou césure de 6 mois à Paris à partir de mars 2027. Missions de cadrage, transformation numérique et appui aux politiques de santé publique et ministères."
-    })
-
-    print(f"{len(unique_jobs)} offres potentielles collectées avant évaluation.")
+    print(f"{len(unique_jobs)} offres collectées avant évaluation.")
     return unique_jobs
 
-# --- 4. Évaluation Gemini ---
+# --- 4. Évaluation Gemini paramétrée ---
 
-def evaluate_with_gemini(jobs: list[dict]) -> list[JobEvaluation]:
+def evaluate_with_gemini(client: genai.Client, jobs: list[dict], prompt: str, threshold: int) -> list[JobEvaluation]:
     if not jobs:
         return []
-
-    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
     raw_payload = "Voici les offres collectées aujourd'hui :\n\n"
     for i, j in enumerate(jobs):
@@ -178,8 +190,8 @@ def evaluate_with_gemini(jobs: list[dict]) -> list[JobEvaluation]:
         )
 
     response = client.models.generate_content(
-        model="gemini-3.6-flash",
-        contents=[PROMPT_PROFIL, raw_payload],
+        model="gemini-2.5-flash",
+        contents=[prompt, raw_payload],
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=JobList,
@@ -188,18 +200,17 @@ def evaluate_with_gemini(jobs: list[dict]) -> list[JobEvaluation]:
     )
 
     parsed = JobList.model_validate_json(response.text)
-    return [job for job in parsed.selected_jobs if job.is_fit]
+    return [job for job in parsed.selected_jobs if job.is_fit and job.relevance_score >= threshold]
 
-# --- 5. Notification E-mail ---
+# --- 5. Notification E-mail paramétrée ---
 
-def send_daily_email(matching_jobs: list[JobEvaluation]):
+def send_daily_email(matching_jobs: list[JobEvaluation], receiver: str, user_name: str):
     if not matching_jobs:
-        print("Aucune offre retenue par l'évaluation.")
+        print(f"Aucune offre retenue pour {user_name}.")
         return
 
     sender = os.environ["EMAIL_SENDER"]
     password = os.environ["EMAIL_PASSWORD"]
-    receiver = os.environ["EMAIL_RECEIVER"]
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = f"🎯 {len(matching_jobs)} nouvelle(s) offre(s) de stage ciblée(s)"
@@ -209,7 +220,7 @@ def send_daily_email(matching_jobs: list[JobEvaluation]):
     html_content = f"""
     <html>
       <body style="font-family: Arial, sans-serif; line-height: 1.5; color: #222;">
-        <h2>Offres sélectionnées pour ton profil (Santé / Conseil / E-Santé)</h2>
+        <h2>Offres sélectionnées pour {user_name}</h2>
         <p>Voici les opportunités identifiées aujourd'hui :</p>
         <ul style="list-style-type: none; padding-left: 0;">
     """
@@ -238,11 +249,36 @@ def send_daily_email(matching_jobs: list[JobEvaluation]):
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(sender, password)
         server.sendmail(sender, receiver, msg.as_string())
-    print(f"E-mail envoyé avec succès contenant {len(matching_jobs)} offre(s).")
+    print(f"E-mail envoyé avec succès à {receiver} ({len(matching_jobs)} offre(s)).")
 
-# --- Point d'entrée ---
+# --- 6. Pipeline et exécution ---
+
+def run_pipeline():
+    jobs = collect_all_jobs()
+    if not jobs:
+        print("Aucune offre collectée sur l'ensemble des sources.")
+        return
+
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+
+    for profile in PROFILES:
+        receiver_email = os.environ.get(profile["email_env_var"])
+        if not receiver_email:
+            print(f"Secret {profile['email_env_var']} manquant : profil {profile['name']} ignoré.")
+            continue
+
+        print(f"Évaluation en cours pour {profile['name']}...")
+        matched = evaluate_with_gemini(
+            client=client,
+            jobs=jobs,
+            prompt=profile["prompt"],
+            threshold=profile["threshold"]
+        )
+        send_daily_email(
+            matching_jobs=matched,
+            receiver=receiver_email,
+            user_name=profile["name"]
+        )
 
 if __name__ == "__main__":
-    jobs = collect_all_jobs()
-    evaluated_jobs = evaluate_with_gemini(jobs)
-    send_daily_email(evaluated_jobs)
+    run_pipeline()
