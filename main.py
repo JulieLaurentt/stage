@@ -217,7 +217,7 @@ def evaluate_with_gemini(client: genai.Client, jobs: list[dict], prompt: str, th
         )
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-3.6-flash",
         contents=[prompt, raw_payload],
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
