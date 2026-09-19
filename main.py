@@ -41,30 +41,25 @@ LEVER_COMPANIES = [
 ]
 
 COMPANY_RSS_FEEDS = [
-    {"company": "BearingPoint", "url": "https://fr.indeed.com/rss?q=company:BearingPoint+stage&l=Paris"},
-    {"company": "Capgemini Invent", "url": "https://fr.indeed.com/rss?q=company:%22Capgemini+Invent%22+stage&l=Paris"},
-    {"company": "Wavestone", "url": "https://fr.indeed.com/rss?q=company:Wavestone+stage&l=Paris"},
-    {"company": "Sia Partners", "url": "https://fr.indeed.com/rss?q=company:%22Sia+Partners%22+stage&l=Paris"},
-    {"company": "Deloitte", "url": "https://fr.indeed.com/rss?q=company:Deloitte+stage+secteur+public+sante&l=Paris"},
-    # --- Régulateurs & Institutions publiques financières ---
-    {"company": "Banque de France / ACPR", "url": "https://fr.indeed.com/rss?q=company:%22Banque+de+France%22+stage&l=Paris"},
-    {"company": "AMF", "url": "https://fr.indeed.com/rss?q=company:%22Autorite+des+marches+financiers%22+stage&l=Paris"},
-    
-    # --- Big 4 / Conseil Risk, ESG & Conformité ---
-    {"company": "KPMG", "url": "https://fr.indeed.com/rss?q=company:KPMG+stage+(ESG+OR+conformite+OR+risque+OR+banque)&l=Paris"},
-    {"company": "PwC", "url": "https://fr.indeed.com/rss?q=company:PwC+stage+(risk+OR+conformite+OR+ESG+OR+durable)&l=Paris"},
-    {"company": "EY", "url": "https://fr.indeed.com/rss?q=company:EY+stage+(banque+OR+risk+OR+durabilite+OR+conformite)&l=Paris"},
-    {"company": "Deloitte Finance", "url": "https://fr.indeed.com/rss?q=company:Deloitte+stage+(risk+OR+regulatory+OR+sustainability)&l=Paris"},
-    {"company": "Mazars / Forvis Mazars", "url": "https://fr.indeed.com/rss?q=company:%22Mazars%22+stage+(banque+OR+esg+OR+conformite)&l=Paris"},
+    # Profil santé / conseil public
+    {"company": "BearingPoint", "url": "https://fr.indeed.com/rss?q=BearingPoint+stage&l=Paris"},
+    {"company": "Capgemini Invent", "url": "https://fr.indeed.com/rss?q=Capgemini+stage+sante&l=Paris"},
+    {"company": "Wavestone", "url": "https://fr.indeed.com/rss?q=Wavestone+stage&l=Paris"},
+    {"company": "Sia Partners", "url": "https://fr.indeed.com/rss?q=Sia+Partners+stage&l=Paris"},
+    {"company": "Deloitte Sante", "url": "https://fr.indeed.com/rss?q=Deloitte+stage+sante&l=Paris"},
 
-    # --- Banques & BFI (Risk / Compliance / ESG) ---
-    {"company": "BNP Paribas", "url": "https://fr.indeed.com/rss?q=company:%22BNP+Paribas%22+stage+(risque+OR+compliance+OR+esg)&l=Paris"},
-    {"company": "Société Générale", "url": "https://fr.indeed.com/rss?q=company:%22Societe+Generale%22+stage+(conformite+OR+risk+OR+rse)&l=Paris"},
-    {"company": "Natixis / BPCE", "url": "https://fr.indeed.com/rss?q=company:%22Natixis%22+stage+(esg+OR+conformite+OR+risques)&l=Paris"},
-    {"company": "Crédit Agricole CIB", "url": "https://fr.indeed.com/rss?q=company:%22Credit+Agricole+CIB%22+stage+(risk+OR+compliance+OR+green)&l=Paris"},
-
-    # --- Agences de notation ---
-    {"company": "Moody's / S&P / Fitch", "url": "https://fr.indeed.com/rss?q=(Moody%27s+OR+%22S%26P%22+OR+Fitch)+stage&l=Paris"},
+    # Profil Johan : Régulateurs, Banques, Big 4, ESG
+    {"company": "Banque de France", "url": "https://fr.indeed.com/rss?q=Banque+de+France+stage&l=Paris"},
+    {"company": "AMF", "url": "https://fr.indeed.com/rss?q=AMF+stage+marches+financiers&l=Paris"},
+    {"company": "KPMG Audit/Risk", "url": "https://fr.indeed.com/rss?q=KPMG+stage+audit+bancaire+risk&l=Paris"},
+    {"company": "PwC Risk/ESG", "url": "https://fr.indeed.com/rss?q=PwC+stage+risk+compliance&l=Paris"},
+    {"company": "EY Audit/Risk", "url": "https://fr.indeed.com/rss?q=EY+stage+banque+conformite&l=Paris"},
+    {"company": "Deloitte Risk", "url": "https://fr.indeed.com/rss?q=Deloitte+stage+risk+regulatory&l=Paris"},
+    {"company": "Mazars ESG/Banque", "url": "https://fr.indeed.com/rss?q=Mazars+stage+conformite+banque&l=Paris"},
+    {"company": "BNP Paribas Risk", "url": "https://fr.indeed.com/rss?q=BNP+Paribas+stage+conformite+risque&l=Paris"},
+    {"company": "Societe Generale Risk", "url": "https://fr.indeed.com/rss?q=Societe+Generale+stage+compliance+risque&l=Paris"},
+    {"company": "Credit Agricole CIB", "url": "https://fr.indeed.com/rss?q=Credit+Agricole+stage+risk+ESG&l=Paris"},
+    {"company": "Notation ESG", "url": "https://fr.indeed.com/rss?q=stage+analyste+ESG+finance+durable&l=Paris"},
 ]
 
 HEADERS = {
@@ -75,7 +70,7 @@ PROFILES = [
     {
         "name": "Julie",
         "email_env_var": "EMAIL_RECEIVER",
-        "threshold": 70,
+        "threshold": 50,
         "prompt": """
 Tu es un expert en recrutement. tu évalues des offres pour le profil suivant :
 - Double diplôme Ingénieur INSA (Mathématiques appliquées/IA/Data) + Sciences Po (Affaires publiques/Stratégie d'entreprise).
@@ -93,16 +88,16 @@ Pour chaque offre fournie :
     {
         "name": "Johan",
         "email_env_var": "EMAIL_RECEIVER_PARTNER",
-        "threshold": 70,
+        "threshold": 50,
         "prompt": """
 Tu es un expert en recrutement. Tu évalues des offres pour le profil suivant :
 - Formation : Étudiant en Master "Corporate Strategy and Finance in Europe" à Sciences Po Strasbourg, actuellement en année de césure (entre le M1 et le M2).
 - Expérience actuelle : Stage de 6 mois en tant qu'auditeur financier spécialisé en audit bancaire chez KPMG.
 - Certifications : Titulaire de la certification AMF, de la certification AMF Finance Durable et de la certification Sulitest.
-- Recherche :  Stage  4 à 6 mois. Entre mars 2027 et octobre 2027.Localisation : Paris et périphérie (Île-de-France).
+- Recherche :  Stage  4 à 6 mois pour 2027.Localisation : Paris et périphérie (Île-de-France).
 - Secteurs et Départements Ciblés : Banques ( Départements Risk Management, Conformité, Contrôle Interne, Veille Stratégique et Réglementaire, Finance Durable / ESG), Agences de notation ( Agences de notations financières classiques et extra-financières (ESG)),Autorités de régulation (Banque de France, Autorité des Marchés Financiers, Autorité de Contrôle Prudentiel et de Résolution...)
 ,Cabinets de conseil (Big 4 & Big 3 / MBB) (Practices Risk Management, Conformité, Contrôle Interne, Veille Stratégique et Réglementaire, Finance Durable / ES)
-- Exclusions : pas d'exclusions.
+
 
 Pour chaque offre fournie :
 - Attribue une note de pertinence entre 0 et 100.
@@ -173,17 +168,18 @@ def fetch_rss_jobs(feed_info: dict) -> list[dict]:
             feed = feedparser.parse(resp.content)
             for entry in feed.entries[:8]:
                 title = entry.get("title", "")
-                if is_internship(title):
+                summary = clean_html(entry.get("summary", ""))[:1200]
+                if is_internship(title, summary):
                     collected.append({
                         "company": feed_info["company"],
                         "title": title,
                         "link": entry.get("link", ""),
-                        "summary": clean_html(entry.get("summary", ""))[:1200]
+                        "summary": summary
                     })
     except Exception as e:
         print(f"Erreur RSS ({feed_info['company']}) : {e}")
     return collected
-
+    
 def collect_all_jobs() -> list[dict]:
     all_jobs = []
 
