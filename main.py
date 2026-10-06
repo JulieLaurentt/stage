@@ -27,52 +27,60 @@ class JobList(BaseModel):
 
 # --- 2. Configuration des cibles et profils ---
 
+# ATS Greenhouse
 GREENHOUSE_COMPANIES = [
-    # E-Santé / Medtech / Consulting (Julie & VisionMed)
     "doctolib",
-    "alan",
-    "lifen",
-    "owkin",               # IA Santé / Imagerie
-    "inceptomedical",      # IA / Imagerie Médicale
-    "shifttechnology",     # IA / Assurtech
-    "dataiku",             # Data / IA
-    "mistralai",           # IA Gen / Tech
-    "synapsemedicine",     # E-santé
-    
-    # Finance / Risk / ESG (Johan)
-    "qonto",          
-    "spendesk",       
-    "pennylane",
-    "pigment",
-    "ledger",
-    "carbon4finance",
-    "swile",
+    "shifttechnology",
+    "dataiku",
+    "ecovadis",           # Transféré depuis Lever (Profil Johan)
+    "payfit",
 ]
 
+# ATS Lever
 LEVER_COMPANIES = [
-    # MedTech & IA Santé (VisionMed & Julie)
-    "gleamer",             # IA Imagerie médicale (Radiologie)
-    "therapixel",          # IA / Mammographie / Imagerie
-    "nabla",               # IA Copilote médical
-    "withings",            # IoT Santé
-    "qare",                # Télémédecine
-    
-    # ESG / Finance (Johan)
-    "ecovadis",            # Notation ESG
-    "mooncard",            # Fintech
-    "agicap",              # Management financier
+    "qonto",               # Transféré depuis Greenhouse (Profil Johan)
+    "ledger",              # Transféré depuis Greenhouse (Profil Johan)
+    "swile",               # Transféré depuis Greenhouse (Profil Johan)
+    "spendesk",            # Transféré depuis Greenhouse (Profil Johan)
+    "agicap",              # Profil Johan
+    "alan",
+    "withings",
+    "qare",
+]
+
+# ATS Ashby
+ASHBY_COMPANIES = [
+    "pigment",             # Transféré depuis Greenhouse (Profil Johan)
+    "pennylane",           # Transféré depuis Greenhouse (Profil Johan)
+    "owkin",
+    "mistral",
+    "gleamer",
+    "therapixel",
+    "nabla",
+    "inceptomedical",
+]
+
+# Entreprises Welcome to the Jungle (WTTJ) - Idéal pour Finance, ESG & Conseil
+WTTJ_COMPANIES = [
+    "kpmg-france",
+    "mazars-france",
+    "wavestone",
+    "bearingpoint",
+    "sia-partners",
+    "capgemini-invent",
+    "bnp-paribas",
+    "societe-generale",
+    "credit-agricole",
 ]
 
 COMPANY_RSS_FEEDS = [
-    # --- PROFIL JULIE (Santé, Medtech, Conseil public) ---
+    # --- PROFIL JULIE ---
     {"company": "BearingPoint", "url": "https://fr.indeed.com/rss?q=BearingPoint+stage&l=Paris"},
     {"company": "Capgemini Invent", "url": "https://fr.indeed.com/rss?q=Capgemini+stage&l=Paris"},
     {"company": "Wavestone", "url": "https://fr.indeed.com/rss?q=Wavestone+stage&l=Paris"},
     {"company": "Sia Partners", "url": "https://fr.indeed.com/rss?q=Sia+Partners+stage&l=Paris"},
-    {"company": "Deloitte Sante", "url": "https://fr.indeed.com/rss?q=Deloitte+stage+sante&l=Paris"},
-    {"company": "Conseil Sante", "url": "https://fr.indeed.com/rss?q=stage+conseil+sante&l=Paris"},
 
-    # --- PROFIL JOHAN (Finance, Risk, ESG, Régulation) ---
+    # --- PROFIL JOHAN ---
     {"company": "Banque de France", "url": "https://fr.indeed.com/rss?q=Banque+de+France+stage&l=Paris"},
     {"company": "AMF", "url": "https://fr.indeed.com/rss?q=AMF+stage&l=Paris"},
     {"company": "KPMG", "url": "https://fr.indeed.com/rss?q=KPMG+stage&l=Paris"},
@@ -80,23 +88,16 @@ COMPANY_RSS_FEEDS = [
     {"company": "EY", "url": "https://fr.indeed.com/rss?q=EY+stage&l=Paris"},
     {"company": "Deloitte Risk", "url": "https://fr.indeed.com/rss?q=Deloitte+stage+risk&l=Paris"},
     {"company": "Mazars", "url": "https://fr.indeed.com/rss?q=Mazars+stage&l=Paris"},
-    {"company": "BNP Paribas", "url": "https://fr.indeed.com/rss?q=BNP+Paribas+stage+conformite&l=Paris"},
-    {"company": "Societe Generale", "url": "https://fr.indeed.com/rss?q=Societe+Generale+stage+risque&l=Paris"},
-    {"company": "Credit Agricole", "url": "https://fr.indeed.com/rss?q=Credit+Agricole+stage+risk&l=Paris"},
 
-    # --- PROFIL VISIONMED (IA, Imagerie, Big Pharma) ---
+    # --- PROFIL VISIONMED ---
     {"company": "Sanofi IA", "url": "https://fr.indeed.com/rss?q=Sanofi+stage+IA&l=France"},
-    {"company": "Sanofi Image", "url": "https://fr.indeed.com/rss?q=Sanofi+stage+image&l=France"},
-    {"company": "Roche IA", "url": "https://fr.indeed.com/rss?q=Roche+stage+IA&l=France"},
     {"company": "GE Healthcare", "url": "https://fr.indeed.com/rss?q=GE+Healthcare+stage&l=France"},
     {"company": "Siemens Healthineers", "url": "https://fr.indeed.com/rss?q=Siemens+Healthineers+stage&l=France"},
     {"company": "Philips Sante", "url": "https://fr.indeed.com/rss?q=Philips+stage+sante&l=France"},
-    {"company": "Computer Vision Sante", "url": "https://fr.indeed.com/rss?q=stage+computer+vision+sante&l=France"},
-    {"company": "Imagerie Medicale IA", "url": "https://fr.indeed.com/rss?q=stage+imagerie+medicale&l=France"},
 ]
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
     "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
 }
@@ -104,7 +105,7 @@ HEADERS = {
 PROFILES = [
     {
         "name": "VisionMed",
-        "email_env_var": "EMAIL_RECEIVER",  # Aligné sur l'adresse email de Julie
+        "email_env_var": "EMAIL_RECEIVER",
         "threshold": 50,
         "prompt": """
 Tu es un expert en recrutement tech/santé. Tu évalues des offres pour un profil ciblant des stages en Computer Vision / Imagerie Médicale / IA appliquée à la Santé.
@@ -139,7 +140,7 @@ EVALUATION :
 - 'job_index' : numéro exact de l'offre dans le lot.
 - Attribue une note de pertinence entre 0 et 100.
 - Passe 'is_fit' à True si le score est >= 50.
-- Explication concise (1 sentence).
+- Explication concise (1 phrase).
 """
     },
     {
@@ -226,10 +227,60 @@ def fetch_lever_jobs(board_name: str) -> list[dict]:
         print(f"✖ Erreur Lever [{board_name}] : {e}")
     return collected
 
+def fetch_ashby_jobs(board_name: str) -> list[dict]:
+    url = f"https://api.ashbyhq.com/posting-api/job-board/{board_name}?includeCompensation=true"
+    collected = []
+    try:
+        res = requests.get(url, headers=HEADERS, timeout=25)
+        if res.status_code == 200:
+            data = res.json()
+            for job in data.get("jobs", []):
+                title = job.get("title", "")
+                location = job.get("location", "")
+                if is_internship(title) and any(loc in str(location) for loc in ["Paris", "France", "Remote", "Lyon", "Gentilly", ""]):
+                    collected.append({
+                        "company": board_name.capitalize(),
+                        "title": title,
+                        "link": job.get("jobUrl", ""),
+                        "summary": clean_html(job.get("descriptionHtml", ""))[:1200]
+                    })
+            print(f"✔ Ashby [{board_name}] : {len(collected)} stage(s) trouvé(s)")
+        else:
+            print(f"✖ Ashby [{board_name}] : Code HTTP {res.status_code}")
+    except Exception as e:
+        print(f"✖ Erreur Ashby [{board_name}] : {e}")
+    return collected
+
+def fetch_wttj_jobs(company_slug: str) -> list[dict]:
+    url = f"https://www.welcometothejungle.com/api/v1/companies/{company_slug}/jobs?website_organization_slug=wttj_fr"
+    collected = []
+    try:
+        res = requests.get(url, headers=HEADERS, timeout=25)
+        if res.status_code == 200:
+            jobs_data = res.json().get("jobs", [])
+            for job in jobs_data:
+                title = job.get("name", "")
+                summary = clean_html(job.get("description", ""))[:1200]
+                contract_type = job.get("contract_type", "")
+                if is_internship(title, summary) or contract_type in ["INTERNSHIP", "FULL_TIME_INTERNSHIP"]:
+                    collected.append({
+                        "company": company_slug.replace("-", " ").title(),
+                        "title": title,
+                        "link": f"https://www.welcometothejungle.com/fr/companies/{company_slug}/jobs/{job.get('slug', '')}",
+                        "summary": summary
+                    })
+            print(f"✔ WTTJ [{company_slug}] : {len(collected)} stage(s) trouvé(s)")
+        else:
+            print(f"✖ WTTJ [{company_slug}] : Code HTTP {res.status_code}")
+    except Exception as e:
+        print(f"✖ Erreur WTTJ [{company_slug}] : {e}")
+    return collected
+
 def fetch_rss_jobs(feed_info: dict) -> list[dict]:
     collected = []
     try:
-        resp = requests.get(feed_info["url"], headers=HEADERS, timeout=25)
+        session = requests.Session()
+        resp = session.get(feed_info["url"], headers=HEADERS, timeout=25)
         if resp.status_code == 200:
             feed = feedparser.parse(resp.content)
             for entry in feed.entries[:10]:
@@ -260,6 +311,14 @@ def collect_all_jobs() -> list[dict]:
     for company in LEVER_COMPANIES:
         all_jobs.extend(fetch_lever_jobs(company))
 
+    print("\n--- Collecte Ashby ---")
+    for company in ASHBY_COMPANIES:
+        all_jobs.extend(fetch_ashby_jobs(company))
+
+    print("\n--- Collecte Welcome to the Jungle (WTTJ) ---")
+    for company in WTTJ_COMPANIES:
+        all_jobs.extend(fetch_wttj_jobs(company))
+
     print("\n--- Collecte Flux RSS ---")
     for feed_info in COMPANY_RSS_FEEDS:
         all_jobs.extend(fetch_rss_jobs(feed_info))
@@ -275,7 +334,6 @@ def evaluate_with_gemini(client: genai.Client, jobs: list[dict], prompt: str, th
         return []
 
     valid_results = []
-    # Gemini 3.5 Flash Lite comme modèle principal
     models_cascade = ["gemini-3.5-flash-lite", "gemini-2.5-flash"]
     
     for i in range(0, len(jobs), batch_size):
