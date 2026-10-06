@@ -244,7 +244,7 @@ def evaluate_with_gemini(client: genai.Client, jobs: list[dict], prompt: str, th
         return []
 
     valid_results = []
-    models_cascade = ["gemini-3.5-flash-lite", "gemini-2.5-flash"]
+    models_cascade = ["gemini-3.5-flash-lite", "gemini-2.5-flash-lite"]
     
     for i in range(0, len(jobs), batch_size):
         batch = jobs[i:i + batch_size]
@@ -389,3 +389,12 @@ def run_pipeline():
             threshold=profile["threshold"],
             batch_size=10
         )
+        
+        send_daily_email(
+            matching_jobs=matched,
+            receiver=receiver_email,
+            user_name=profile["name"]
+        )
+
+if __name__ == "__main__":
+    run_pipeline()
