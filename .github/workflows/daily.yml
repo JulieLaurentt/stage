@@ -19,7 +19,7 @@ jobs:
           cache: 'pip'
 
       - name: Installer les dépendances
-        run: pipinstall -r requirements.txt
+        run: pip install -r requirements.txt
 
       - name: Exécuter l'agent de tri
         env:
