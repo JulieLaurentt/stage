@@ -16,7 +16,7 @@ from google.genai import types
 from pydantic import BaseModel
 
 
-# --- 1. Schémas de données Pydantic ---
+# --- 1. Schémas Pydantic ---
 
 class JobEvaluation(BaseModel):
     job_index: int
@@ -30,7 +30,7 @@ class JobList(BaseModel):
     selected_jobs: list[JobEvaluation]
 
 
-# --- 2. Configuration des sources ---
+# --- 2. Configuration des cibles ---
 
 GREENHOUSE_COMPANIES = ["doctolib", "shifttechnology", "dataiku", "ecovadisfrance"]
 LEVER_COMPANIES = ["qonto", "ledger-2", "swile", "spendesk", "agicap", "alan", "withings"]
@@ -132,7 +132,8 @@ HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
-# --- 3. Utilitaire & Modules de collecte ---
+
+# --- 3. Fonctions de nettoyage et collecte ---
 
 def clean_html(raw_html: str) -> str:
     if not raw_html:
@@ -141,7 +142,7 @@ def clean_html(raw_html: str) -> str:
     return " ".join(html.unescape(clean_text).split())
 
 def is_internship(title: str, summary: str = "") -> bool:
-    keywords = ["stage", "intern", "internship", "cesure", "césure", "stagiaire", "trainee"]
+    keywords = ["stage", "intern", "internship", "cesure", "césure", "stagiaire", "trainee", "off-cycle"]
     combined_text = f"{title} {summary}".lower()
     return any(k in combined_text for k in keywords)
 
@@ -153,35 +154,44 @@ def fetch_greenhouse(company: str) -> list[dict]:
         if res.status_code == 200:
             for job in res.json().get("jobs", []):
                 title = job.get("title", "")
-                if is_internship(title):
+                summary = clean_html(job.get("content", ""))[:1200]
+                if is_internship(title, summary):
                     collected.append({
                         "company": company.capitalize(),
                         "title": title,
                         "link": job.get("absolute_url", ""),
-                        "summary": clean_html(job.get("content", ""))[:1200]
+                        "summary": summary
                     })
-    except Exception:
-        pass
+            print(f"✔ Greenhouse [{company}] : {len(collected)} stage(s) trouvé(s)")
+        else:
+            print(f"✖ Greenhouse [{company}] : Code HTTP {res.status_code}")
+    except Exception as e:
+        print(f"✖ Greenhouse [{company}] : Erreur {e}")
     return collected
 
 def fetch_lever(company: str) -> list[dict]:
     url = f"https://api.lever.co/v0/postings/{company}?mode=json"
     collected = []
+    clean_name = company.replace("-2", "").capitalize()
     try:
         res = requests.get(url, headers=HEADERS, timeout=12)
         if res.status_code == 200:
             for job in res.json():
                 title = job.get("text", "")
                 commitment = job.get("categories", {}).get("commitment", "")
-                if is_internship(title) or is_internship(commitment):
+                summary = clean_html(job.get("descriptionPlain", ""))[:1200]
+                if is_internship(title, summary) or is_internship(commitment):
                     collected.append({
-                        "company": company.replace("-2", "").capitalize(),
+                        "company": clean_name,
                         "title": title,
                         "link": job.get("hostedUrl", ""),
-                        "summary": clean_html(job.get("descriptionPlain", ""))[:1200]
+                        "summary": summary
                     })
-    except Exception:
-        pass
+            print(f"✔ Lever [{clean_name}] : {len(collected)} stage(s) trouvé(s)")
+        else:
+            print(f"✖ Lever [{clean_name}] : Code HTTP {res.status_code}")
+    except Exception as e:
+        print(f"✖ Lever [{clean_name}] : Erreur {e}")
     return collected
 
 def fetch_ashby(company: str) -> list[dict]:
@@ -192,15 +202,19 @@ def fetch_ashby(company: str) -> list[dict]:
         if res.status_code == 200:
             for job in res.json().get("jobs", []):
                 title = job.get("title", "")
-                if is_internship(title):
+                summary = clean_html(job.get("descriptionHtml", ""))[:1200]
+                if is_internship(title, summary):
                     collected.append({
                         "company": company.capitalize(),
                         "title": title,
                         "link": job.get("jobUrl", ""),
-                        "summary": clean_html(job.get("descriptionHtml", ""))[:1200]
+                        "summary": summary
                     })
-    except Exception:
-        pass
+            print(f"✔ Ashby [{company}] : {len(collected)} stage(s) trouvé(s)")
+        else:
+            print(f"✖ Ashby [{company}] : Code HTTP {res.status_code}")
+    except Exception as e:
+        print(f"✖ Ashby [{company}] : Erreur {e}")
     return collected
 
 def fetch_workable(company: str) -> list[dict]:
@@ -211,15 +225,19 @@ def fetch_workable(company: str) -> list[dict]:
         if res.status_code == 200:
             for job in res.json().get("jobs", []):
                 title = job.get("title", "")
-                if is_internship(title):
+                summary = clean_html(job.get("description", ""))[:1200]
+                if is_internship(title, summary):
                     collected.append({
                         "company": company.capitalize(),
                         "title": title,
                         "link": job.get("shortlink", ""),
-                        "summary": clean_html(job.get("description", ""))[:1200]
+                        "summary": summary
                     })
-    except Exception:
-        pass
+            print(f"✔ Workable [{company}] : {len(collected)} stage(s) trouvé(s)")
+        else:
+            print(f"✖ Workable [{company}] : Code HTTP {res.status_code}")
+    except Exception as e:
+        print(f"✖ Workable [{company}] : Erreur {e}")
     return collected
 
 def fetch_personio(info: dict) -> list[dict]:
@@ -231,16 +249,20 @@ def fetch_personio(info: dict) -> list[dict]:
             root = ET.fromstring(res.content)
             for position in root.findall(".//position"):
                 title = position.findtext("name", "")
-                if is_internship(title):
+                summary = clean_html(position.findtext("jobDescriptions", ""))[:1200]
+                if is_internship(title, summary):
                     job_id = position.findtext("id", "")
                     collected.append({
                         "company": info["company"],
                         "title": title,
                         "link": f"https://{info['token']}.personio.de/job/{job_id}",
-                        "summary": clean_html(position.findtext("jobDescriptions", ""))[:1200]
+                        "summary": summary
                     })
-    except Exception:
-        pass
+            print(f"✔ Personio [{info['company']}] : {len(collected)} stage(s) trouvé(s)")
+        else:
+            print(f"✖ Personio [{info['company']}] : Code HTTP {res.status_code}")
+    except Exception as e:
+        print(f"✖ Personio [{info['company']}] : Erreur {e}")
     return collected
 
 def fetch_wttj_algolia(company_slug: str) -> list[dict]:
@@ -250,27 +272,33 @@ def fetch_wttj_algolia(company_slug: str) -> list[dict]:
         "x-algolia-application-id": "WV2989230Y",
         "x-algolia-api-key": "a4d33923d242ef99e0f6c2a4c10648c3"
     }
+    # query à vide pour tout récupérer et filtrer localement
     payload = {
-        "query": "stage",
+        "query": "",
         "filters": f"company.slug:'{company_slug}'",
-        "hitsPerPage": 20
+        "hitsPerPage": 100
     }
     collected = []
+    display_name = company_slug.replace("-", " ").title()
     try:
         res = requests.post(algolia_url, params=params, json=payload, headers=HEADERS, timeout=12)
         if res.status_code == 200:
             for hit in res.json().get("hits", []):
                 title = hit.get("name", "")
                 summary = clean_html(hit.get("description", ""))[:1200]
-                if is_internship(title, summary):
+                contract = hit.get("contract_type", "")
+                if is_internship(title, summary) or contract in ["INTERNSHIP", "FULL_TIME_INTERNSHIP"]:
                     collected.append({
-                        "company": company_slug.replace("-", " ").title(),
+                        "company": display_name,
                         "title": title,
                         "link": f"https://www.welcometothejungle.com/fr/companies/{company_slug}/jobs/{hit.get('slug', '')}",
                         "summary": summary
                     })
-    except Exception:
-        pass
+            print(f"✔ WTTJ [{display_name}] : {len(collected)} stage(s) trouvé(s)")
+        else:
+            print(f"✖ WTTJ [{display_name}] : Code HTTP {res.status_code}")
+    except Exception as e:
+        print(f"✖ WTTJ [{display_name}] : Erreur {e}")
     return collected
 
 def fetch_rss_cloudscraper(feed_info: dict) -> list[dict]:
@@ -292,45 +320,50 @@ def fetch_rss_cloudscraper(feed_info: dict) -> list[dict]:
                         "link": entry.get("link", ""),
                         "summary": summary
                     })
-    except Exception:
-        pass
+            print(f"✔ RSS [{feed_info['company']}] : {len(collected)} offre(s) trouvée(s)")
+        else:
+            print(f"⚠️ RSS [{feed_info['company']}] bloqué (HTTP {resp.status_code})")
+    except Exception as e:
+        print(f"✖ RSS [{feed_info['company']}] : Erreur {e}")
     return collected
 
 
-# --- 4. Collecte parallèle ultra-rapide ---
+# --- 4. Collecte parallèle avec logs ---
 
 def collect_all_jobs_parallel() -> list[dict]:
     all_jobs = []
-    tasks = []
+    
+    print("--- Démarrage de la collecte parallèle avec logs ---\n")
 
-    with ThreadPoolExecutor(max_workers=25) as executor:
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        futures = []
+        
         for c in GREENHOUSE_COMPANIES:
-            tasks.append(executor.submit(fetch_greenhouse, c))
+            futures.append(executor.submit(fetch_greenhouse, c))
         for c in LEVER_COMPANIES:
-            tasks.append(executor.submit(fetch_lever, c))
+            futures.append(executor.submit(fetch_lever, c))
         for c in ASHBY_COMPANIES:
-            tasks.append(executor.submit(fetch_ashby, c))
+            futures.append(executor.submit(fetch_ashby, c))
         for c in WORKABLE_COMPANIES:
-            tasks.append(executor.submit(fetch_workable, c))
+            futures.append(executor.submit(fetch_workable, c))
         for p in PERSONIO_COMPANIES:
-            tasks.append(executor.submit(fetch_personio, p))
+            futures.append(executor.submit(fetch_personio, p))
         for w in WTTJ_SLUGS:
-            tasks.append(executor.submit(fetch_wttj_algolia, w))
+            futures.append(executor.submit(fetch_wttj_algolia, w))
         for r in COMPANY_RSS_FEEDS:
-            tasks.append(executor.submit(fetch_rss_cloudscraper, r))
+            futures.append(executor.submit(fetch_rss_cloudscraper, r))
 
-        for future in as_completed(tasks):
+        for future in as_completed(futures):
             res = future.result()
             if res:
                 all_jobs.extend(res)
 
-    # Déduplication par lien
     unique_jobs = list({j["link"]: j for j in all_jobs}.values())
-    print(f"✔ Collecte terminée : {len(unique_jobs)} offres uniques récupérées.")
+    print(f"\n✔ Collecte terminée : {len(unique_jobs)} offres uniques récupérées au total.")
     return unique_jobs
 
 
-# --- 5. Évaluation Gemini & Envoi d'e-mails ---
+# --- 5. Évaluation Gemini & Notification ---
 
 def evaluate_with_gemini(client: genai.Client, jobs: list[dict], prompt: str, threshold: int, batch_size: int = 10) -> list[dict]:
     if not jobs:
@@ -373,7 +406,7 @@ def evaluate_with_gemini(client: genai.Client, jobs: list[dict], prompt: str, th
                             })
                 batch_done = True
             except Exception as e:
-                print(f"Erreur évaluation ({model_name}) : {e}")
+                print(f"Erreur API ({model_name}) : {e}")
                 time.sleep(2)
 
     return valid_results
@@ -411,23 +444,25 @@ def send_email(matching_jobs: list[dict], receiver: str, user_name: str):
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(sender, password)
             server.sendmail(sender, receiver, msg.as_string())
-        print(f"E-mail envoyé à {receiver} pour {user_name} ({len(matching_jobs)} offres).")
+        print(f"E-mail envoyé avec succès à {receiver} pour {user_name} ({len(matching_jobs)} offres).")
     except Exception as e:
-        print(f"Erreur envoi e-mail {user_name} : {e}")
+        print(f"Erreur d'envoi e-mail pour {user_name} : {e}")
 
 
-# --- 6. Pipeline Principal ---
+# --- 6. Exécution du pipeline ---
 
 def run_pipeline():
     start_time = time.time()
     jobs = collect_all_jobs_parallel()
-    print(f"Temps de collecte : {round(time.time() - start_time, 2)}s")
+    print(f"Temps de collecte : {round(time.time() - start_time, 2)}s\n")
 
     if not jobs:
+        print("Aucune offre collectée.")
         return
 
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
+        print("Erreur : GEMINI_API_KEY manquante.")
         return
 
     client = genai.Client(api_key=api_key)
@@ -437,7 +472,7 @@ def run_pipeline():
         if not receiver:
             continue
 
-        print(f"\nÉvaluation pour {profile['name']}...")
+        print(f"--- Évaluation en cours pour {profile['name']} ---")
         matched = evaluate_with_gemini(
             client=client,
             jobs=jobs,
