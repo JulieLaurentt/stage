@@ -14,10 +14,10 @@ from pydantic import BaseModel
 # --- 1. Schémas de données structurés ---
 
 class JobEvaluation(BaseModel):
-    job_index: int  # Garantit la correspondance exacte du lien
+    job_index: int
     title: str
     company: str
-    relevance_score: int  # 0 à 100
+    relevance_score: int
     is_fit: bool
     summary_reason: str
 
@@ -32,7 +32,7 @@ GREENHOUSE_COMPANIES = [
     "qonto",          
     "spendesk",       
     "carbon4finance", 
-    "owkin",          # IA / Imagerie Médicale / Biotech
+    "owkin",
 ]
 
 LEVER_COMPANIES = [
@@ -40,47 +40,46 @@ LEVER_COMPANIES = [
     "nabla",
     "ecovadis",       
     "mooncard",       
-    "gleamer",        # Pépite française en Computer Vision pour l'imagerie médicale
-    "therapixel",     # IA / Radiologie
+    "gleamer",
+    "therapixel",
 ]
 
 COMPANY_RSS_FEEDS = [
-    # Profil santé / conseil public (Julie)
+    # --- PROFIL JULIE (Santé, Medtech, Conseil public) ---
     {"company": "BearingPoint", "url": "https://fr.indeed.com/rss?q=BearingPoint+stage&l=Paris"},
-    {"company": "Capgemini Invent", "url": "https://fr.indeed.com/rss?q=Capgemini+stage+sante&l=Paris"},
+    {"company": "Capgemini Invent", "url": "https://fr.indeed.com/rss?q=Capgemini+stage&l=Paris"},
     {"company": "Wavestone", "url": "https://fr.indeed.com/rss?q=Wavestone+stage&l=Paris"},
     {"company": "Sia Partners", "url": "https://fr.indeed.com/rss?q=Sia+Partners+stage&l=Paris"},
     {"company": "Deloitte Sante", "url": "https://fr.indeed.com/rss?q=Deloitte+stage+sante&l=Paris"},
+    {"company": "Conseil Sante Generique", "url": "https://fr.indeed.com/rss?q=stage+conseil+sante&l=Paris"},
+    {"company": "E-sante / Medtech", "url": "https://fr.indeed.com/rss?q=stage+medtech&l=Paris"},
 
-    # Profil Johan : Régulateurs, Banques, Big 4, ESG
+    # --- PROFIL JOHAN (Finance, Risk, ESG, Régulation) ---
     {"company": "Banque de France", "url": "https://fr.indeed.com/rss?q=Banque+de+France+stage&l=Paris"},
-    {"company": "AMF", "url": "https://fr.indeed.com/rss?q=AMF+stage+marches+financiers&l=Paris"},
-    {"company": "KPMG Audit/Risk", "url": "https://fr.indeed.com/rss?q=KPMG+stage+audit+bancaire+risk&l=Paris"},
-    {"company": "PwC Risk/ESG", "url": "https://fr.indeed.com/rss?q=PwC+stage+risk+compliance&l=Paris"},
-    {"company": "EY Audit/Risk", "url": "https://fr.indeed.com/rss?q=EY+stage+banque+conformite&l=Paris"},
-    {"company": "Deloitte Risk", "url": "https://fr.indeed.com/rss?q=Deloitte+stage+risk+regulatory&l=Paris"},
-    {"company": "Mazars ESG/Banque", "url": "https://fr.indeed.com/rss?q=Mazars+stage+conformite+banque&l=Paris"},
-    {"company": "BNP Paribas Risk", "url": "https://fr.indeed.com/rss?q=BNP+Paribas+stage+conformite+risque&l=Paris"},
-    {"company": "Societe Generale Risk", "url": "https://fr.indeed.com/rss?q=Societe+Generale+stage+compliance+risque&l=Paris"},
-    {"company": "Credit Agricole CIB", "url": "https://fr.indeed.com/rss?q=Credit+Agricole+stage+risk+ESG&l=Paris"},
-    {"company": "Notation ESG", "url": "https://fr.indeed.com/rss?q=stage+analyste+ESG+finance+durable&l=Paris"},
-    
-    # REQUÊTES DÉSENCAPSULÉES POUR VISIONMED / BIG PHARMA & MEDTECH
-    # (Sans parenthèses ni guillemets qui font échouer le flux RSS Indeed)
+    {"company": "AMF", "url": "https://fr.indeed.com/rss?q=AMF+stage&l=Paris"},
+    {"company": "KPMG", "url": "https://fr.indeed.com/rss?q=KPMG+stage&l=Paris"},
+    {"company": "PwC", "url": "https://fr.indeed.com/rss?q=PwC+stage&l=Paris"},
+    {"company": "EY", "url": "https://fr.indeed.com/rss?q=EY+stage&l=Paris"},
+    {"company": "Deloitte Risk", "url": "https://fr.indeed.com/rss?q=Deloitte+stage+risk&l=Paris"},
+    {"company": "Mazars", "url": "https://fr.indeed.com/rss?q=Mazars+stage&l=Paris"},
+    {"company": "BNP Paribas", "url": "https://fr.indeed.com/rss?q=BNP+Paribas+stage+conformite&l=Paris"},
+    {"company": "Societe Generale", "url": "https://fr.indeed.com/rss?q=Societe+Generale+stage+risque&l=Paris"},
+    {"company": "Credit Agricole CIB", "url": "https://fr.indeed.com/rss?q=Credit+Agricole+stage+risk&l=Paris"},
+    {"company": "Recherche Risk/Compliance", "url": "https://fr.indeed.com/rss?q=stage+conformite+banque&l=Paris"},
+    {"company": "Recherche ESG Finance", "url": "https://fr.indeed.com/rss?q=stage+analyste+ESG&l=Paris"},
+
+    # --- PROFIL VISIONMED (IA, Imagerie, Big Pharma) ---
     {"company": "Sanofi IA", "url": "https://fr.indeed.com/rss?q=Sanofi+stage+IA&l=France"},
     {"company": "Sanofi Deep Learning", "url": "https://fr.indeed.com/rss?q=Sanofi+stage+deep+learning&l=France"},
-    {"company": "Sanofi Traitement d'images", "url": "https://fr.indeed.com/rss?q=Sanofi+stage+image&l=France"},
+    {"company": "Sanofi Image", "url": "https://fr.indeed.com/rss?q=Sanofi+stage+image&l=France"},
     {"company": "Roche IA", "url": "https://fr.indeed.com/rss?q=Roche+stage+IA&l=France"},
     {"company": "Roche Imagerie", "url": "https://fr.indeed.com/rss?q=Roche+stage+imagerie&l=France"},
     {"company": "GE Healthcare", "url": "https://fr.indeed.com/rss?q=GE+Healthcare+stage&l=France"},
     {"company": "Siemens Healthineers", "url": "https://fr.indeed.com/rss?q=Siemens+Healthineers+stage&l=France"},
     {"company": "Philips Sante", "url": "https://fr.indeed.com/rss?q=Philips+stage+sante&l=France"},
-    
-    # RECHERCHES PAR MOTS-CLÉS TECHNIQUE / IMAGERIE
     {"company": "Computer Vision Sante", "url": "https://fr.indeed.com/rss?q=stage+computer+vision+sante&l=France"},
     {"company": "Imagerie Medicale IA", "url": "https://fr.indeed.com/rss?q=stage+imagerie+medicale&l=France"},
-    {"company": "Traitement d'image Deep Learning", "url": "https://fr.indeed.com/rss?q=stage+traitement+image+deep+learning&l=France"},
-    {"company": "Biomarqueurs IA", "url": "https://fr.indeed.com/rss?q=stage+biomarqueurs+IA&l=France"},
+    {"company": "Traitement d'image DL", "url": "https://fr.indeed.com/rss?q=stage+traitement+image&l=France"},
 ]
 
 HEADERS = {
@@ -97,18 +96,17 @@ Tu es un expert en recrutement tech/santé. Tu évalues des offres pour un profi
 
 CRITÈRES D'ACCEPTATION :
 - Stage de fin d'études ou césure en Machine Learning, Deep Learning, Traitement d'images, Computer Vision ou Data Science appliquée à la santé, aux biomarqueurs ou à la pharma.
-- Accepte les offres en France entière (Île-de-France, Lyon, Marcy l'Étoile, Gentilly, Remote, etc.).
-- Ne te limite PAS au terme exact "Computer Vision" dans le titre. Accepte les intitulés comme "Traitement d'images", "Deep Learning & Imagerie", "IA & Biomarqueurs", "Data Science Santé / Algorithmes".
-- Secteurs ciblés : Big Pharma (Sanofi, Roche...), MedTech, Imagerie médicale (GE Healthcare, Siemens, Philips), Startups IA santé (Owkin, Gleamer, Therapixel...).
+- Accepte la France entière (Île-de-France, Lyon, Marcy l'Étoile, Gentilly, Remote, etc.).
+- Ne te limite PAS au terme exact "Computer Vision" dans le titre. Accepte : "Traitement d'images", "Deep Learning & Imagerie", "IA & Biomarqueurs", "Data Science Santé".
+- Secteurs : Big Pharma (Sanofi, Roche...), MedTech, Imagerie médicale (GE Healthcare, Siemens, Philips), Startups IA santé (Owkin, Gleamer, Therapixel...).
 
-EXCLUSIONS STRICTES :
-- Marketing, commercial pur, affaires réglementaires pures, support IT, développement web/logiciel classique sans brique IA/Image.
+EXCLUSIONS STRICTES : Marketing, commercial pur, affaires réglementaires pures, support IT, dev web sans IA/Image.
 
 EVALUATION :
-- 'job_index' : retourne le numéro exact de l'offre dans le lot (ex: 1, 2, 3...).
+- 'job_index' : numéro exact de l'offre dans le lot (ex: 1, 2...).
 - Attribue une note de pertinence entre 0 et 100.
 - Passe 'is_fit' à True si le score est >= 55.
-- Explication concise (1 phrase).
+- Explication concise (1 sentence).
 """
     },
     {
@@ -119,14 +117,14 @@ EVALUATION :
 Tu es un expert en recrutement. Tu évalues des offres pour le profil suivant :
 - Double diplôme Ingénieur INSA (Maths applicables/IA/Data) + Sciences Po (Affaires publiques/Stratégie).
 - Recherche : Stage de 6 mois débutant début 2027 à Paris/Île-de-France.
-- Domaines prioritaires : E-santé, santé publique, medtech, cybersécurité hospitalière, Product Management santé.
+- Domaines prioritaires : E-santé, santé publique, medtech, cybersécurité hospitalière, Product Management santé, conseil en stratégie santé / secteur public.
 - Exclusions strictes : Commercial pur, prospection, marketing, stages < 4 mois.
 
-Pour chaque offre fournie :
-- 'job_index' : retourne le numéro exact de l'offre dans le lot.
+EVALUATION :
+- 'job_index' : numéro exact de l'offre dans le lot.
 - Attribue une note de pertinence entre 0 et 100.
-- Passe 'is_fit' à True UNIQUEMENT si le score est >= 70.
-- Fournis une explication concise (1 phrase).
+- Passe 'is_fit' à True si le score est >= 50.
+- Explication concise (1 sentence).
 """
     },
     {
@@ -134,16 +132,22 @@ Pour chaque offre fournie :
         "email_env_var": "EMAIL_RECEIVER_PARTNER",
         "threshold": 50,
         "prompt": """
-Tu es un expert en recrutement. Tu évalues des offres pour le profil suivant :
+Tu es un expert en recrutement finance / conseil. Tu évalues des offres pour le profil suivant :
 - Formation : Master Corporate Strategy & Finance à Sciences Po Strasbourg, ex-auditeur bancaire chez KPMG.
 - Recherche : Stage 4 à 6 mois (Paris / Île-de-France).
-- Secteurs : Banques (Risk, Conformité), Agences de notation (ESG), Régulateurs (AMF, BdF), Conseil (Big 4 / MBB).
+- Secteurs ciblés :
+  1. Banques & Institutions : Gestion des risques, Conformité/Compliance, M&A, Inspection générale.
+  2. Régulateurs & Organismes publics : AMF, Banque de France, BCE.
+  3. Agences de notation & ESG : Analyse ESG, Finance durable, Rating.
+  4. Cabinets de Conseil : Big 4 (KPMG, PwC, EY, Deloitte), Mazars, conseil en stratégie/organisation bancaire.
 
-Pour chaque offre fournie :
-- 'job_index' : retourne le numéro exact de l'offre dans le lot.
+EXCLUSIONS STRICTES : Comptabilité pure, paie, commercial/prospection, stages de vente.
+
+EVALUATION :
+- 'job_index' : numéro exact de l'offre dans le lot.
 - Attribue une note de pertinence entre 0 et 100.
-- Passe 'is_fit' à True UNIQUEMENT si le score est >= 70.
-- Fournis une explication concise (1 phrase).
+- Passe 'is_fit' à True si le score est >= 50.
+- Explication concise (1 sentence).
 """
     }
 ]
@@ -234,17 +238,17 @@ def collect_all_jobs() -> list[dict]:
         all_jobs.extend(fetch_rss_jobs(feed_info))
 
     unique_jobs = list({j["link"]: j for j in all_jobs}.values())
-    print(f"{len(unique_jobs)} offres uniques collectées avant évaluation.")
+    print(f"{len(unique_jobs)} offres uniques collectées au total avant évaluation.")
     return unique_jobs
 
-# --- 4. Évaluation Gemini avec Fallback de Modèle & Indexation Sûre ---
+# --- 4. Évaluation Gemini ---
 
 def evaluate_with_gemini(client: genai.Client, jobs: list[dict], prompt: str, threshold: int, batch_size: int = 10) -> list[dict]:
     if not jobs:
         return []
 
     valid_results = []
-    models_cascade = ["gemini-3.5-flash-lite", "gemini-2.5-flash-lite"]
+    models_cascade = ["gemini-3.5-flash-lite", "gemini-2.5-flash"]
     
     for i in range(0, len(jobs), batch_size):
         batch = jobs[i:i + batch_size]
@@ -339,7 +343,7 @@ def send_daily_email(matching_jobs: list[dict], receiver: str, user_name: str):
             <br>
             <b>Analyse :</b> {job['summary_reason']}
             <br>
-            👉 <a href="{job['url']}" target="_blank" style="color: #0055ff; font-weight: bold; text-decoration: none;">Consulter l'offre</a>
+             <a href="{job['url']}" target="_blank" style="color: #0055ff; font-weight: bold; text-decoration: none;">Consulter l'offre</a>
           </li>
         """
 
