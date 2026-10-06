@@ -81,7 +81,7 @@ HEADERS = {
 PROFILES = [
     {
         "name": "VisionMed",
-        "email_env_var": "EMAIL_RECEIVER_VISION",  # <-- Ajoute cette variable d'environnement pour ton email
+        "email_env_var": "EMAIL_RECEIVER",  # <-- Ajoute cette variable d'environnement pour ton email
         "threshold": 65,
         "prompt": """
 Tu es un expert en recrutement tech et IA. Tu évalues des offres pour un profil ciblant des stages en "Computer Vision Médicale".
@@ -247,7 +247,7 @@ def evaluate_with_gemini(client: genai.Client, jobs: list[dict], prompt: str, th
             try:
                 # Utilisation d'un modèle flash à jour
                 response = client.models.generate_content(
-                    model="gemini-3.8-flash", 
+                    model="gemini-3.5-flash-lite", 
                     contents=[prompt, raw_payload],
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json",
