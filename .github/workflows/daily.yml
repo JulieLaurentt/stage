@@ -2,7 +2,7 @@ name: Veille Quotidienne Offres de Stage
 
 on:
   schedule:
-    - cron: '30 6 * * *'  # 7h30 heure de Paris
+    - cron: '44 4 * * *'  # 7h30 heure de Paris
   workflow_dispatch:      # Permet aussi de déclencher le script manuellement depuis GitHub
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
           cache: 'pip'
 
       - name: Installer les dépendances
-        run: pip install -r requirements.txt
+        run: pipinstall -r requirements.txt
 
       - name: Exécuter l'agent de tri
         env:
