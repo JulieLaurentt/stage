@@ -14,9 +14,9 @@ from pydantic import BaseModel
 # --- 1. Schémas de données structurés ---
 
 class JobEvaluation(BaseModel):
+    job_index: int  # Garantit la correspondance exacte du lien
     title: str
     company: str
-    url: str
     relevance_score: int  # 0 à 100
     is_fit: bool
     summary_reason: str
@@ -32,7 +32,7 @@ GREENHOUSE_COMPANIES = [
     "qonto",          
     "spendesk",       
     "carbon4finance", 
-    "owkin",          # IA & Biotech / MedTech (utilise souvent Greenhouse)
+    "owkin",          # IA / Imagerie Médicale / Biotech
 ]
 
 LEVER_COMPANIES = [
@@ -41,11 +41,11 @@ LEVER_COMPANIES = [
     "ecovadis",       
     "mooncard",       
     "gleamer",        # Pépite française en Computer Vision pour l'imagerie médicale
-    "therapixel",     # IA appliquée à la radiologie
+    "therapixel",     # IA / Radiologie
 ]
 
 COMPANY_RSS_FEEDS = [
-    # Profil santé / conseil public
+    # Profil santé / conseil public (Julie)
     {"company": "BearingPoint", "url": "https://fr.indeed.com/rss?q=BearingPoint+stage&l=Paris"},
     {"company": "Capgemini Invent", "url": "https://fr.indeed.com/rss?q=Capgemini+stage+sante&l=Paris"},
     {"company": "Wavestone", "url": "https://fr.indeed.com/rss?q=Wavestone+stage&l=Paris"},
@@ -65,13 +65,22 @@ COMPANY_RSS_FEEDS = [
     {"company": "Credit Agricole CIB", "url": "https://fr.indeed.com/rss?q=Credit+Agricole+stage+risk+ESG&l=Paris"},
     {"company": "Notation ESG", "url": "https://fr.indeed.com/rss?q=stage+analyste+ESG+finance+durable&l=Paris"},
     
-    # NOUVEAUX : Profil Computer Vision Médicale & Big Pharma (Sanofi, Roche, etc.)
-    {"company": "Sanofi IA/Data", "url": "https://fr.indeed.com/rss?q=Sanofi+stage+(IA+OR+vision+OR+data+OR+%22machine+learning%22)&l=France"},
-    {"company": "Roche IA/Data", "url": "https://fr.indeed.com/rss?q=Roche+stage+(IA+OR+vision+OR+data+OR+%22deep+learning%22)&l=France"},
-    {"company": "Philips Healthcare", "url": "https://fr.indeed.com/rss?q=Philips+stage+(IA+OR+vision+OR+image+OR+algorithm)&l=France"},
-    {"company": "Siemens Healthineers", "url": "https://fr.indeed.com/rss?q=Siemens+Healthineers+stage+(IA+OR+vision+OR+deep+learning)&l=France"},
-    {"company": "GE Healthcare", "url": "https://fr.indeed.com/rss?q=GE+Healthcare+stage+(IA+OR+vision+OR+deep+learning)&l=France"},
-    {"company": "Recherche Générique CV Médical", "url": "https://fr.indeed.com/rss?q=stage+(%22computer+vision%22+OR+%22vision+par+ordinateur%22+OR+%22imagerie%22)+(sante+OR+medical+OR+hopital)&l=France"},
+    # REQUÊTES DÉSENCAPSULÉES POUR VISIONMED / BIG PHARMA & MEDTECH
+    # (Sans parenthèses ni guillemets qui font échouer le flux RSS Indeed)
+    {"company": "Sanofi IA", "url": "https://fr.indeed.com/rss?q=Sanofi+stage+IA&l=France"},
+    {"company": "Sanofi Deep Learning", "url": "https://fr.indeed.com/rss?q=Sanofi+stage+deep+learning&l=France"},
+    {"company": "Sanofi Traitement d'images", "url": "https://fr.indeed.com/rss?q=Sanofi+stage+image&l=France"},
+    {"company": "Roche IA", "url": "https://fr.indeed.com/rss?q=Roche+stage+IA&l=France"},
+    {"company": "Roche Imagerie", "url": "https://fr.indeed.com/rss?q=Roche+stage+imagerie&l=France"},
+    {"company": "GE Healthcare", "url": "https://fr.indeed.com/rss?q=GE+Healthcare+stage&l=France"},
+    {"company": "Siemens Healthineers", "url": "https://fr.indeed.com/rss?q=Siemens+Healthineers+stage&l=France"},
+    {"company": "Philips Sante", "url": "https://fr.indeed.com/rss?q=Philips+stage+sante&l=France"},
+    
+    # RECHERCHES PAR MOTS-CLÉS TECHNIQUE / IMAGERIE
+    {"company": "Computer Vision Sante", "url": "https://fr.indeed.com/rss?q=stage+computer+vision+sante&l=France"},
+    {"company": "Imagerie Medicale IA", "url": "https://fr.indeed.com/rss?q=stage+imagerie+medicale&l=France"},
+    {"company": "Traitement d'image Deep Learning", "url": "https://fr.indeed.com/rss?q=stage+traitement+image+deep+learning&l=France"},
+    {"company": "Biomarqueurs IA", "url": "https://fr.indeed.com/rss?q=stage+biomarqueurs+IA&l=France"},
 ]
 
 HEADERS = {
@@ -81,18 +90,25 @@ HEADERS = {
 PROFILES = [
     {
         "name": "VisionMed",
-        "email_env_var": "EMAIL_RECEIVER",  # <-- Ajoute cette variable d'environnement pour ton email
-        "threshold": 65,
+        "email_env_var": "EMAIL_RECEIVER_VISION",
+        "threshold": 55,
         "prompt": """
-Tu es un expert en recrutement tech et IA. Tu évalues des offres pour un profil ciblant des stages en "Computer Vision Médicale".
-- Recherche : Stage de fin d'études ou césure en Machine Learning, Deep Learning, Computer Vision appliqué à la santé.
-- Secteurs : Imagerie médicale, Big Pharma, MedTech, IA en santé (ex: Sanofi, Roche, Owkin, Gleamer).
-- Exclusions strictes : Stages en marketing, finance, réglementaire pur sans technique, IT support ou dev web classique.
-Pour chaque offre fournie :
+Tu es un expert en recrutement tech/santé. Tu évalues des offres pour un profil ciblant des stages en Computer Vision / Imagerie Médicale / IA appliquée à la Santé.
+
+CRITÈRES D'ACCEPTATION :
+- Stage de fin d'études ou césure en Machine Learning, Deep Learning, Traitement d'images, Computer Vision ou Data Science appliquée à la santé, aux biomarqueurs ou à la pharma.
+- Accepte les offres en France entière (Île-de-France, Lyon, Marcy l'Étoile, Gentilly, Remote, etc.).
+- Ne te limite PAS au terme exact "Computer Vision" dans le titre. Accepte les intitulés comme "Traitement d'images", "Deep Learning & Imagerie", "IA & Biomarqueurs", "Data Science Santé / Algorithmes".
+- Secteurs ciblés : Big Pharma (Sanofi, Roche...), MedTech, Imagerie médicale (GE Healthcare, Siemens, Philips), Startups IA santé (Owkin, Gleamer, Therapixel...).
+
+EXCLUSIONS STRICTES :
+- Marketing, commercial pur, affaires réglementaires pures, support IT, développement web/logiciel classique sans brique IA/Image.
+
+EVALUATION :
+- 'job_index' : retourne le numéro exact de l'offre dans le lot (ex: 1, 2, 3...).
 - Attribue une note de pertinence entre 0 et 100.
-- Passe 'is_fit' à True UNIQUEMENT si le score est >= 65 et que le rôle implique de l'IA/Computer Vision/Data Science.
-- Fournis une explication concise (1 phrase) de l'adéquation ou du refus.
-- Assure-toi de recopier EXACTEMENT le lien fourni dans le champ 'url'.
+- Passe 'is_fit' à True si le score est >= 55.
+- Explication concise (1 phrase).
 """
     },
     {
@@ -100,16 +116,17 @@ Pour chaque offre fournie :
         "email_env_var": "EMAIL_RECEIVER",
         "threshold": 50,
         "prompt": """
-Tu es un expert en recrutement. tu évalues des offres pour le profil suivant :
-- Double diplôme Ingénieur INSA (Mathématiques appliquées/IA/Data) + Sciences Po (Affaires publiques/Stratégie d'entreprise).
-- Recherche : Stage de 6 mois débutant en février/mars/avril 2027 à Paris/Île-de-France.
-- Domaines prioritaires : E-santé, santé publique, medtech, SSI/cybersécurité hospitalière, Product Management santé, transformation du secteur public / santé.
-- Exclusions strictes : Rôles purement commerciaux, prospection, optimisation des prix / pricing pur, Marketing, stages courts (< 4 mois).
+Tu es un expert en recrutement. Tu évalues des offres pour le profil suivant :
+- Double diplôme Ingénieur INSA (Maths applicables/IA/Data) + Sciences Po (Affaires publiques/Stratégie).
+- Recherche : Stage de 6 mois débutant début 2027 à Paris/Île-de-France.
+- Domaines prioritaires : E-santé, santé publique, medtech, cybersécurité hospitalière, Product Management santé.
+- Exclusions strictes : Commercial pur, prospection, marketing, stages < 4 mois.
+
 Pour chaque offre fournie :
+- 'job_index' : retourne le numéro exact de l'offre dans le lot.
 - Attribue une note de pertinence entre 0 et 100.
 - Passe 'is_fit' à True UNIQUEMENT si le score est >= 70.
-- Fournis une explication concise (1 phrase) de l'adéquation ou du refus.
-- Assure-toi de recopier EXACTEMENT le lien fourni dans le champ 'url'.
+- Fournis une explication concise (1 phrase).
 """
     },
     {
@@ -118,14 +135,15 @@ Pour chaque offre fournie :
         "threshold": 50,
         "prompt": """
 Tu es un expert en recrutement. Tu évalues des offres pour le profil suivant :
-- Formation : Étudiant en Master "Corporate Strategy and Finance in Europe" à Sciences Po Strasbourg, actuellement en césure.
-- Recherche : Stage 4 à 6 mois pour 2027. Localisation : Paris et périphérie (Île-de-France).
-- Secteurs Ciblés : Banques, Agences de notation (ESG), Autorités de régulation, Cabinets de conseil (Big 4 & Big 3).
+- Formation : Master Corporate Strategy & Finance à Sciences Po Strasbourg, ex-auditeur bancaire chez KPMG.
+- Recherche : Stage 4 à 6 mois (Paris / Île-de-France).
+- Secteurs : Banques (Risk, Conformité), Agences de notation (ESG), Régulateurs (AMF, BdF), Conseil (Big 4 / MBB).
+
 Pour chaque offre fournie :
+- 'job_index' : retourne le numéro exact de l'offre dans le lot.
 - Attribue une note de pertinence entre 0 et 100.
 - Passe 'is_fit' à True UNIQUEMENT si le score est >= 70.
-- Fournis une explication concise (1 phrase) de l'adéquation ou du refus.
-- Assure-toi de recopier EXACTEMENT le lien fourni dans le champ 'url'.
+- Fournis une explication concise (1 phrase).
 """
     }
 ]
@@ -189,7 +207,7 @@ def fetch_rss_jobs(feed_info: dict) -> list[dict]:
         resp = requests.get(feed_info["url"], headers=HEADERS, timeout=25)
         if resp.status_code == 200:
             feed = feedparser.parse(resp.content)
-            for entry in feed.entries[:10]: # On en prend jusqu'à 10 par flux
+            for entry in feed.entries[:10]:
                 title = entry.get("title", "")
                 summary = clean_html(entry.get("summary", ""))[:1200]
                 if is_internship(title, summary):
@@ -219,15 +237,15 @@ def collect_all_jobs() -> list[dict]:
     print(f"{len(unique_jobs)} offres uniques collectées avant évaluation.")
     return unique_jobs
 
-# --- 4. Évaluation Gemini avec Batching et Retry ---
+# --- 4. Évaluation Gemini avec Fallback de Modèle & Indexation Sûre ---
 
-def evaluate_with_gemini(client: genai.Client, jobs: list[dict], prompt: str, threshold: int, batch_size: int = 15) -> list[JobEvaluation]:
+def evaluate_with_gemini(client: genai.Client, jobs: list[dict], prompt: str, threshold: int, batch_size: int = 10) -> list[dict]:
     if not jobs:
         return []
 
-    valid_jobs = []
+    valid_results = []
+    models_cascade = ["gemini-3.5-flash-lite", "gemini-2.5-flash"]
     
-    # Traitement par lots (batching) pour éviter le timeout et la limite de tokens
     for i in range(0, len(jobs), batch_size):
         batch = jobs[i:i + batch_size]
         
@@ -237,45 +255,55 @@ def evaluate_with_gemini(client: genai.Client, jobs: list[dict], prompt: str, th
                 f"--- OFFRE {idx + 1} ---\n"
                 f"Entreprise: {j['company']}\n"
                 f"Titre: {j['title']}\n"
-                f"Lien (url): {j['link']}\n"
                 f"Description: {j['summary']}\n\n"
             )
 
-        # Mécanisme de Retry en cas de surcharge de l'API (Erreur 503, 429...)
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                # Utilisation d'un modèle flash à jour
-                response = client.models.generate_content(
-                    model="gemini-3.5-flash-lite", 
-                    contents=[prompt, raw_payload],
-                    config=types.GenerateContentConfig(
-                        response_mime_type="application/json",
-                        response_schema=JobList,
-                        temperature=0.1,
-                    ),
-                )
-                
-                parsed = JobList.model_validate_json(response.text)
-                
-                for job_eval in parsed.selected_jobs:
-                    if job_eval.is_fit and job_eval.relevance_score >= threshold:
-                        valid_jobs.append(job_eval)
-                        
-                break # Sortie de la boucle retry si succès
-                
-            except Exception as e:
-                print(f"Erreur API Gemini (lot {i//batch_size + 1}, essai {attempt+1}/{max_retries}) : {e}")
-                time.sleep(5) # Pause avant de réessayer
+        batch_success = False
         
-        # Pause obligatoire entre deux lots pour respecter les quotas de l'API gratuite/standard
+        for model_name in models_cascade:
+            if batch_success:
+                break
+                
+            for attempt in range(2):
+                try:
+                    response = client.models.generate_content(
+                        model=model_name, 
+                        contents=[prompt, raw_payload],
+                        config=types.GenerateContentConfig(
+                            response_mime_type="application/json",
+                            response_schema=JobList,
+                            temperature=0.1,
+                        ),
+                    )
+                    
+                    parsed = JobList.model_validate_json(response.text)
+                    
+                    for eval_item in parsed.selected_jobs:
+                        if eval_item.is_fit and eval_item.relevance_score >= threshold:
+                            if 1 <= eval_item.job_index <= len(batch):
+                                original_job = batch[eval_item.job_index - 1]
+                                valid_results.append({
+                                    "title": eval_item.title,
+                                    "company": original_job["company"],
+                                    "url": original_job["link"],
+                                    "relevance_score": eval_item.relevance_score,
+                                    "summary_reason": eval_item.summary_reason
+                                })
+                                
+                    batch_success = True
+                    break
+                    
+                except Exception as e:
+                    print(f"Surcharge API {model_name} (lot {i//batch_size + 1}, essai {attempt+1}) : {e}")
+                    time.sleep(5)
+
         time.sleep(3)
 
-    return valid_jobs
+    return valid_results
 
 # --- 5. Notification E-mail ---
 
-def send_daily_email(matching_jobs: list[JobEvaluation], receiver: str, user_name: str):
+def send_daily_email(matching_jobs: list[dict], receiver: str, user_name: str):
     if not matching_jobs:
         print(f"Aucune offre retenue pour {user_name}.")
         return
@@ -288,7 +316,7 @@ def send_daily_email(matching_jobs: list[JobEvaluation], receiver: str, user_nam
         return
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"🎯 {len(matching_jobs)} nouvelle(s) offre(s) de stage pour {user_name}"
+    msg["Subject"] = f"🎯 {len(matching_jobs)} nouvelle(s) offre(s) sélectionnée(s) pour {user_name}"
     msg["From"] = sender
     msg["To"] = receiver
 
@@ -301,18 +329,17 @@ def send_daily_email(matching_jobs: list[JobEvaluation], receiver: str, user_nam
     """
 
     for job in matching_jobs:
-        # Code couleur en fonction du score
-        color = "#00cc66" if job.relevance_score >= 85 else "#0055ff"
+        color = "#00cc66" if job["relevance_score"] >= 80 else "#0055ff"
         
         html_content += f"""
           <li style="margin-bottom: 20px; padding: 12px; border-left: 5px solid {color}; background: #f8f9fa;">
-            <b style="font-size: 16px;">{job.title}</b> — <b>{job.company}</b>
+            <b style="font-size: 16px;">{job['title']}</b> — <b>{job['company']}</b>
             <br>
-            <span style="color: {color}; font-weight: bold;">Score : {job.relevance_score}/100</span>
+            <span style="color: {color}; font-weight: bold;">Score : {job['relevance_score']}/100</span>
             <br>
-            <b>Analyse :</b> {job.summary_reason}
+            <b>Analyse :</b> {job['summary_reason']}
             <br>
-            👉 <a href="{job.url}" target="_blank" style="color: #0055ff; font-weight: bold; text-decoration: none;">Consulter l'offre</a>
+            👉 <a href="{job['url']}" target="_blank" style="color: #0055ff; font-weight: bold; text-decoration: none;">Consulter l'offre</a>
           </li>
         """
 
@@ -338,7 +365,7 @@ def run_pipeline():
     print("Démarrage de la collecte des offres...")
     jobs = collect_all_jobs()
     if not jobs:
-        print("Aucune offre collectée sur l'ensemble des sources.")
+        print("Aucune offre collectée.")
         return
 
     api_key = os.environ.get("GEMINI_API_KEY")
@@ -360,14 +387,5 @@ def run_pipeline():
             jobs=jobs,
             prompt=profile["prompt"],
             threshold=profile["threshold"],
-            batch_size=12 # Ajustable si l'API est trop capricieuse
+            batch_size=10
         )
-        
-        send_daily_email(
-            matching_jobs=matched,
-            receiver=receiver_email,
-            user_name=profile["name"]
-        )
-
-if __name__ == "__main__":
-    run_pipeline()
