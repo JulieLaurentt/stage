@@ -90,7 +90,7 @@ HEADERS = {
 PROFILES = [
     {
         "name": "VisionMed",
-        "email_env_var": "EMAIL_RECEIVER_VISION",
+        "email_env_var": "EMAIL_RECEIVER",
         "threshold": 55,
         "prompt": """
 Tu es un expert en recrutement tech/santé. Tu évalues des offres pour un profil ciblant des stages en Computer Vision / Imagerie Médicale / IA appliquée à la Santé.
