@@ -38,7 +38,9 @@ ASHBY_COMPANIES = ["mistralai", "pigment", "pennylane", "owkin", "gleamer-ai", "
 WORKABLE_COMPANIES = ["qare"]
 PERSONIO_COMPANIES = [{"company": "PayFit", "token": "payfit-jobs"}]
 
-WTTJ_SLUGS = [
+WTTJ_SLUGS = ["bpifrance",
+    "plateforme-des-donnees-de-sante", 
+    "inserm-transfert",
     "kpmg-france", "mazars-france", "wavestone", "bearingpoint",
     "sia-partners", "capgemini-invent", "bnp-paribas", "societe-generale", "credit-agricole"
 ]
@@ -70,30 +72,30 @@ PROFILES = [
 Tu es un expert en recrutement tech/santé. Tu évalues des offres pour un profil ciblant des stages en Computer Vision / Imagerie Médicale / IA appliquée à la Santé.
 
 CRITÈRES D'ACCEPTATION :
-- Stage de fin d'études ou césure en Machine Learning, Deep Learning, Traitement d'images, Computer Vision, Data Science ou IA appliquée à la santé, à l'imagerie ou à la biologie.
+- Stage en Machine Learning, Deep Learning, Traitement d'images, Computer Vision, Data Science ou IA appliquée à la santé, à l'imagerie ou à la biologie.
 - Accepte la France entière (Île-de-France, Lyon, Marcy l'Étoile, Gentilly, Remote, etc.).
 - Ne te limite PAS au terme exact "Computer Vision". Accepte : "Traitement d'images", "Deep Learning", "IA & Biomarqueurs", "Data Science Santé", "Machine Learning Engineer".
 - Secteurs : Big Pharma, MedTech, Imagerie médicale, Startups IA santé.
 
-EXCLUSIONS STRICTES : Marketing, commercial pur, support IT classique.
+EXCLUSIONS STRICTES : Marketing, commercial pur, support IT classique, CDI
 
 EVALUATION :
 - 'job_index' : numéro exact de l'offre.
 - Note de pertinence (0 à 100).
-- 'is_fit' : True si score >= 50.
+- 'is_fit' : True si score >= 60.
 - Explication concise (1 phrase).
 """
     },
     {
         "name": "Julie",
         "email_env_var": "EMAIL_RECEIVER",
-        "threshold": 50,
+        "threshold": 60,
         "prompt": """
 Tu es un expert en recrutement. Tu évalues des offres pour :
 - Double diplôme Ingénieur INSA (Maths/IA/Data) + Sciences Po (Affaires publiques/Stratégie).
 - Stage de 6 mois débutant début 2027 à Paris/Île-de-France.
 - Domaines prioritaires : E-santé, santé publique, medtech, cybersécurité hospitalière, Product Management santé, conseil en stratégie santé / secteur public.
-- Exclusions strictes : Commercial pur, marketing, stages < 4 mois.
+- Exclusions strictes : Commercial pur, marketing, CDI ET CDD
 
 EVALUATION :
 - 'job_index' : numéro exact de l'offre.
@@ -115,13 +117,12 @@ Tu es un expert en recrutement finance / conseil. Tu évalues des offres pour :
   2. Régulateurs : AMF, Banque de France, BCE.
   3. Agences de notation & ESG : Analyse ESG, Finance durable.
   4. Conseil : Big 4 (KPMG, PwC, EY, Deloitte), Mazars, conseil en stratégie/organisation bancaire.
-
-EXCLUSIONS STRICTES : Comptabilité pure, paie, commercial.
+  5. Intelligence économique
 
 EVALUATION :
 - 'job_index' : numéro exact de l'offre.
 - Note de pertinence (0 à 100).
-- 'is_fit' : True si score >= 50.
+- 'is_fit' : True si score >= 60.
 - Explication concise (1 phrase).
 """
     }
